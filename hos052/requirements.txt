@@ -1,0 +1,20 @@
+# Web app framework
+gradio
+
+# Deep learning
+torch
+torchvision
+transformers
+
+# Classic machine learning and data handling
+scikit-learn
+pandas
+numpy
+joblib
+
+# Image processing and plotting
+pillow
+matplotlib
+
+# Explainable AI (Grad-CAM heatmaps)
+grad-cam
