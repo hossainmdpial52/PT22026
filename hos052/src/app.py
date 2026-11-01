@@ -1,130 +1,102 @@
 """
-AgroGuard AI - Version 1
-Plant leaf disease detection using a pre-trained MobileNetV2 model.
+AgroGuard AI - Plant Disease Detector and Farming Assistant
+
+Tabs:
+  1. Diagnose        - upload a leaf photo, get the disease and a care report
+  2. Disease Library - browse information about every supported disease
+  3. Farming Chatbot - ask simple questions about diseases
 
 How to run:
     python src/app.py
 """
 
 import gradio as gr
-import torch
-from torchvision import transforms
-from transformers import AutoImageProcessor, AutoModelForImageClassification
 
-# ---------------------------------------------------------------------------
-# Configuration
-# ---------------------------------------------------------------------------
-# Pre-trained MobileNetV2 fine-tuned on the PlantVillage dataset (38 classes)
-MODEL_NAME = "linkanjarad/mobilenet_v2_1.0_224-plant-disease-identification"
-TOP_K = 5  # Number of top predictions to show
+from classifier import CLASS_NAMES, MODEL_CHOICES, get_classifier
+from knowledge_base import chat_answer, diagnosis_report, pretty
 
+TOP_K = 5  # Number of top predictions shown to the user
 
-# ---------------------------------------------------------------------------
-# Image preprocessing
-# ---------------------------------------------------------------------------
-def build_preprocessor():
-    """
-    Return a function that converts a PIL image into a model-ready tensor.
-
-    The model has an old preprocessor config that newer versions of
-    `transformers` may not recognize, so we try three options in order:
-      1. AutoImageProcessor (automatic)
-      2. MobileNetV2ImageProcessor (explicit class)
-      3. Manual torchvision pipeline (same steps as MobileNetV2 training)
-    """
-    # Option 1: automatic processor
-    try:
-        processor = AutoImageProcessor.from_pretrained(MODEL_NAME)
-        print("Using AutoImageProcessor.")
-        return lambda img: processor(images=img, return_tensors="pt")["pixel_values"]
-    except Exception as error:
-        print(f"AutoImageProcessor failed ({type(error).__name__}), trying next option...")
-
-    # Option 2: explicit MobileNetV2 processor class
-    try:
-        from transformers import MobileNetV2ImageProcessor
-
-        processor = MobileNetV2ImageProcessor.from_pretrained(MODEL_NAME)
-        print("Using MobileNetV2ImageProcessor.")
-        return lambda img: processor(images=img, return_tensors="pt")["pixel_values"]
-    except Exception as error:
-        print(f"MobileNetV2ImageProcessor failed ({type(error).__name__}), using manual pipeline...")
-
-    # Option 3: manual pipeline (resize, center crop, normalize to [-1, 1])
-    print("Using manual torchvision preprocessing.")
-    manual = transforms.Compose([
-        transforms.Resize(256),
-        transforms.CenterCrop(224),
-        transforms.ToTensor(),
-        transforms.Normalize(mean=[0.5, 0.5, 0.5], std=[0.5, 0.5, 0.5]),
-    ])
-    return lambda img: manual(img).unsqueeze(0)
+# Remembers the last diagnosed disease so the chatbot can answer
+# follow-up questions such as "How do I prevent it?"
+# (simple version: shared by all users of this running app)
+last = {"label": None}
 
 
-# ---------------------------------------------------------------------------
-# Model loading (done once when the app starts)
-# ---------------------------------------------------------------------------
-print("Loading model, please wait...")
-preprocess = build_preprocessor()
-model = AutoModelForImageClassification.from_pretrained(MODEL_NAME)
-model.eval()  # Switch to inference mode (no training)
-print("Model loaded successfully.")
-
-
-def clean_label(raw_label: str) -> str:
-    """Convert a raw label like 'Tomato___Late_blight' to 'Tomato - Late blight'."""
-    parts = raw_label.split("___")
-    if len(parts) == 2:
-        plant = parts[0].replace("_", " ")
-        disease = parts[1].replace("_", " ")
-        return f"{plant} - {disease}"
-    return raw_label.replace("_", " ")
-
-
-def predict(image):
-    """Take a PIL image and return the top-K predictions as {label: probability}."""
-    # Error handling: the user pressed Submit without uploading an image
+def diagnose(image, model_label):
+    """Predict the disease from a leaf image and build the care report."""
+    # Error handling: no image was uploaded
     if image is None:
         raise gr.Error("Please upload a leaf image first.")
 
     try:
-        # Resize and normalize the image the way the model expects
-        pixel_values = preprocess(image.convert("RGB"))
-
-        # Run the model without calculating gradients (faster, uses less memory)
-        with torch.no_grad():
-            logits = model(pixel_values=pixel_values).logits
-
-        # Convert raw scores into probabilities that sum to 1
-        probabilities = torch.softmax(logits, dim=-1)[0]
-
-        # Pick the most likely classes
-        top_probs, top_ids = torch.topk(probabilities, k=TOP_K)
-
-        results = {}
-        for prob, idx in zip(top_probs, top_ids):
-            raw_label = model.config.id2label[idx.item()]
-            results[clean_label(raw_label)] = float(prob)
-        return results
-
+        classifier = get_classifier(MODEL_CHOICES[model_label])
+        predictions = classifier.predict(image, top_k=TOP_K)
+    except FileNotFoundError as error:
+        raise gr.Error(str(error))
     except Exception as error:
         raise gr.Error(f"Could not process the image: {error}")
 
+    best_label, best_conf = predictions[0]
+    last["label"] = best_label
+    scores = {pretty(label): prob for label, prob in predictions}
+    return scores, diagnosis_report(best_label, best_conf)
 
-# ---------------------------------------------------------------------------
-# User interface
-# ---------------------------------------------------------------------------
-demo = gr.Interface(
-    fn=predict,
-    inputs=gr.Image(type="pil", label="Upload a plant leaf image"),
-    outputs=gr.Label(num_top_classes=TOP_K, label="Prediction"),
-    title="AgroGuard AI - Plant Disease Detection",
-    description=(
-        "Upload a photo of a plant leaf and the AI model will predict "
-        "the plant type and its disease (or healthy status)."
-    ),
-    flagging_mode="never",
-)
+
+def show_library(label):
+    """Show the information page of the selected disease."""
+    return diagnosis_report(label) if label else "Please select a disease."
+
+
+def chatbot_fn(message, history):
+    """Answer a chatbot question (uses the last diagnosis as context)."""
+    return chat_answer(message, last["label"])
+
+
+# Dropdown choices for the library: (readable name, raw label)
+library_choices = sorted([(pretty(name), name) for name in CLASS_NAMES])
+
+with gr.Blocks(title="AgroGuard") as demo:
+    gr.Markdown(
+        "# AgroGuard: Plant Disease Detector and Farming Assistant\n"
+        "Upload a leaf photo to detect the disease, then get disease information, "
+        "plant-care suggestions and a prevention checklist."
+    )
+    with gr.Tabs():
+        with gr.Tab("Diagnose"):
+            with gr.Row():
+                with gr.Column():
+                    img_in = gr.Image(type="pil", label="Leaf image")
+                    model_dd = gr.Dropdown(
+                        choices=list(MODEL_CHOICES.keys()),
+                        value=list(MODEL_CHOICES.keys())[0],
+                        label="Choose a model",
+                    )
+                    btn = gr.Button("Diagnose", variant="primary")
+                with gr.Column():
+                    label_out = gr.Label(num_top_classes=TOP_K, label="Most likely diseases")
+            report_out = gr.Markdown()
+            btn.click(diagnose, inputs=[img_in, model_dd], outputs=[label_out, report_out])
+
+        with gr.Tab("Disease Library"):
+            dd = gr.Dropdown(choices=library_choices, label="Select a disease")
+            lib_btn = gr.Button("Show information", variant="primary")
+            lib_out = gr.Markdown()
+            lib_btn.click(show_library, inputs=dd, outputs=lib_out)
+            dd.input(show_library, inputs=dd, outputs=lib_out)
+
+        with gr.Tab("Farming Chatbot"):
+            gr.ChatInterface(
+                fn=chatbot_fn,
+                examples=[
+                    "How can I prevent Early Blight?",
+                    "What are the symptoms of tomato late blight?",
+                    "How does apple scab spread?",
+                    "Which pesticide and dosage should I use?",
+                ],
+            )
+
+    gr.Markdown("_This is a support tool. Please consult a local agricultural officer before making final decisions._")
 
 if __name__ == "__main__":
     demo.launch()
