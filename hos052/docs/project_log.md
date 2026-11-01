@@ -88,7 +88,7 @@ Error handling: no image uploaded, missing model weights (clear message), unread
 - src/app.py - Gradio user interface (3 tabs)
 - src/classifier.py - model loading, preprocessing, prediction (shared class list for both models)
 - src/knowledge_base.py - disease data, report builder, chatbot logic
-- notebooks/ - Colab training notebook (TO DO: add the .ipynb)
+- notebooks/train_agroguard.ipynb - Colab training notebook (all steps: datasets, class mapping, baseline evaluation, training of Model 2 and 3, plots)
 - docs/results.md, docs/project_log.md - results and notes
 - models/ (ignored by git) - local weights models/model3 (config.json, model.safetensors, about 9 MB)
 - data/ (ignored by git) - datasets are downloaded by the notebook; links are given in the README
@@ -104,6 +104,7 @@ Hugging Face Hub and give the link in the README.
 - Commits so far: initial project structure; basic Gradio app with pre-trained model;
   (pending commit) modular classifier + Model 3 + comparison dropdown + results notes;
   (pending commit) knowledge base, Disease Library tab and Farming Chatbot.
+- Git push needed a proxy setting on the student computer (git config --global http.proxy http://127.0.0.1:12000).
 - The Pull Request is the official submission and is created only when everything is finished.
 
 ## 9. Tools and environment
@@ -113,7 +114,7 @@ Checkpoints, final models, results.json and plots are stored in Google Drive fol
 
 ## 10. Remaining work (keep this list updated)
 1. Commit and push the current code (Step 25 files).
-2. Save Colab training notebook (.ipynb) into notebooks/ (training script requirement).
+2. DONE: training notebook saved in notebooks/train_agroguard.ipynb (commit and push it).
 3. Upload Model 3 to Hugging Face Hub, add the link and download steps to the README.
 4. Grad-CAM tab (explainability).
 5. Crop Recommendation tab (Random Forest on soil/weather values) as the second ML model.
