@@ -24,6 +24,7 @@ compares three models, and builds an application around the best one.
 | **Diagnose** | Upload a leaf photo, choose a model, see the top-5 predictions, a disease report, care suggestions, a prevention checklist and a low-confidence warning |
 | **Disease Library** | Browse the information page of all 38 classes (26 diseases + 12 healthy classes) |
 | **Farming Chatbot** | Ask questions such as "How can I prevent Early Blight?". It remembers the last diagnosis for follow-up questions and never recommends specific pesticides or dosages |
+| **Explain (Grad-CAM)** | Shows a heatmap of the image regions that influenced the model's decision (explainable AI) |
 
 The Diagnose tab can switch between **AgroGuard Model 3 (ours)** and the **ready-made baseline**, so the
 difference between lab-only and lab + field training can be shown live.
@@ -60,6 +61,8 @@ cosine learning-rate schedule, cross-entropy with label smoothing 0.1, mixed pre
 Augmentation: random resized crop, horizontal and vertical flip, 30 degree rotation, color jitter.
 Model 3 uses PlantVillage plus the PlantDoc field photos (repeated 6 times because that set is small).
 
+**Explainability (Grad-CAM):** To show *why* the model decided, the app uses Grad-CAM (Selvaraju et al., 2017). For the predicted class, it takes the gradients of the class score with respect to the last convolutional feature maps (7 x 7 x 1280), averages them per channel to get an importance weight for each channel, adds up the weighted feature maps, keeps the positive part (ReLU), enlarges it to 224 x 224 and lays it over the photo. Red and yellow areas influenced the decision the most. In our tests the red area usually lies on the diseased part of the leaf, not on the background. The heatmap is coarse (7 x 7 grid), so it does not mark every spot exactly.
+
 **Capabilities:** recognizes 38 classes (14 crops) from a single leaf photo, works much better on field photos
 than a lab-only model, and runs on a normal laptop CPU.
 
@@ -71,6 +74,7 @@ than a lab-only model, and runs on a normal laptop CPU.
 - Only the 38 classes of PlantVillage are supported; other crops and diseases are not recognized.
 - It works on one leaf per photo and cannot find several diseases in one image.
 - The knowledge base and the chatbot are rule-based, so they only answer questions about the supported diseases.
+- Grad-CAM heatmaps have low resolution and show where the model looked, which is not a proof that the prediction is correct.
 
 ## 5. Project structure
 
@@ -79,6 +83,7 @@ hos052/
 ├── src/
 │   ├── app.py              # Gradio interface (3 tabs)
 │   ├── classifier.py       # model loading, preprocessing, prediction
+│   ├── explain.py          # Grad-CAM heatmaps (explainable AI)
 │   └── knowledge_base.py   # disease information, reports and chatbot logic
 ├── notebooks/
 │   └── train_agroguard.ipynb   # training and evaluation notebook (Google Colab)
@@ -127,7 +132,7 @@ Open the address shown in the terminal (normally http://127.0.0.1:7860) in your 
 The first run also downloads the small ready-made baseline model from the Hugging Face Hub (no login needed).
 
 **Using the app:** open the **Diagnose** tab, upload a leaf photo, select a model and press **Diagnose**.
-Use **Disease Library** to read about a disease, and **Farming Chatbot** to ask questions.
+Use **Disease Library** to read about a disease, **Farming Chatbot** to ask questions, and **Explain (Grad-CAM)** to see where the model looked.
 
 ## 7. Datasets (not stored in GitHub)
 
@@ -150,6 +155,8 @@ checkpoints, plots and the final models to Google Drive. If Colab disconnects, r
 - Hughes and Salathe, "An open access repository of images on plant health to enable the development of mobile
   disease diagnostics" (PlantVillage), 2015 (arXiv:1511.08060)
 - Singh et al., "PlantDoc: A Dataset for Visual Plant Disease Detection", 2020 (arXiv:1911.10317)
+- Selvaraju et al., "Grad-CAM: Visual Explanations from Deep Networks via Gradient-based Localization", ICCV 2017 (arXiv:1610.02391)
+- Gildenblat and contributors, "PyTorch library for CAM methods" (pytorch-grad-cam), https://github.com/jacobgil/pytorch-grad-cam
 - Ready-made baseline model: `linkanjarad/mobilenet_v2_1.0_224-plant-disease-identification` (Hugging Face)
 - Base model: `google/mobilenet_v2_1.0_224` (Hugging Face)
 - Libraries: PyTorch, torchvision, Hugging Face Transformers and Datasets, Gradio, scikit-learn, matplotlib

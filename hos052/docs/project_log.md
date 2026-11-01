@@ -75,6 +75,8 @@ Tabs:
    a report with disease information, plant-care suggestions, prevention checklist, safety note,
    and a warning when confidence is below 50%.
 2. Disease Library: dropdown of all 38 classes with the same report.
+4. Explain (Grad-CAM): upload a leaf image, choose a model, get a heatmap of the regions that influenced the top
+   prediction (src/explain.py, library pytorch-grad-cam, target layer = last 1x1 convolution of MobileNetV2, 7x7 map).
 3. Farming Chatbot: rule-based (keyword matching of plant, disease and intent: prevent, symptoms, cause,
    spread, treat, chemicals). It remembers the last diagnosed disease for follow-up questions.
    It never recommends specific pesticides or dosages (safety by design).
@@ -87,6 +89,7 @@ Error handling: no image uploaded, missing model weights (clear message), unread
 ## 7. Code structure (repository folder hos052)
 - src/app.py - Gradio user interface (3 tabs)
 - src/classifier.py - model loading, preprocessing, prediction (shared class list for both models)
+- src/explain.py - Grad-CAM heatmaps
 - src/knowledge_base.py - disease data, report builder, chatbot logic
 - notebooks/train_agroguard.ipynb - Colab training notebook (all steps: datasets, class mapping, baseline evaluation, training of Model 2 and 3, plots)
 - docs/results.md, docs/project_log.md - results and notes
@@ -116,7 +119,7 @@ Checkpoints, final models, results.json and plots are stored in Google Drive fol
 1. Commit and push the current code (Step 25 files).
 2. DONE: training notebook saved in notebooks/train_agroguard.ipynb (commit and push it).
 3. DONE: Hugging Face skipped (not required). Model 3 shared via Google Drive link, download steps are in the README.
-4. Grad-CAM tab (explainability).
+4. DONE: Grad-CAM tab (tested by the student: works with Model 3).
 5. Crop Recommendation tab (Random Forest on soil/weather values) as the second ML model.
 6. Bangla language option for the Disease Library (optional, creativity).
 7. DONE: full README written (install, run, datasets, model link, model documentation, limitations, references).
@@ -130,3 +133,13 @@ ready-model prediction on a lab-style photo (correct), Model 3 prediction on the
 Drive folder with trained models, training curves, model comparison chart, confusion matrix, GitHub fork page.
 Needed: all 3 app tabs, chatbot conversation, Grad-CAM, crop recommendation, GitHub commit history, Pull Request page,
 Hugging Face Space page.
+
+## 12. Grad-CAM observations (for the Discussion section)
+- Test photo: apple leaf with many red-brown spots. Model 3 predicted Apple - Cedar apple rust (76% confidence).
+  The heatmap's red area was on the left-center part of the leaf, where several large lesions are, not on the background.
+- The heatmap did not mark every lesion (some lesions on the right side stayed blue). Reason: Grad-CAM works on a
+  7 x 7 feature map, so it is coarse; it shows where the model looked, not a proof that the answer is right.
+- How Grad-CAM works: gradients of the class score w.r.t. the last conv feature maps are averaged per channel (weights),
+  the weighted feature maps are summed, ReLU is applied, the map is resized to 224 x 224 and overlaid on the photo.
+- Reference: Selvaraju et al., ICCV 2017 (arXiv:1610.02391); library: jacobgil/pytorch-grad-cam.
+- TO DO: take a comparison screenshot, Model 3 vs ready-made baseline, on the same field photo.
