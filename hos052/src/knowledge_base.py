@@ -200,6 +200,12 @@ def chat_answer(msg, last_label=None):
         e = get_info(last_label)
         if e and e["type"] != "healthy":
             hits = [e]
+    # Chemical / dosage questions always get the safety answer, even without a disease name
+    if not hits and "chem" in intents:
+        return ("I cannot recommend specific pesticides or dosages, because a wrong choice can harm "
+                "your crop, your health and the environment. Please follow approved guidance from your "
+                "local agricultural extension officer.\n\nI can still explain the cause, symptoms, spread, "
+                "prevention and general care of a disease. Just ask with a disease name.")
     if not hits and plants:
         own = [e["title"] for e in KB if e["plant"] in plants]
         if own:
