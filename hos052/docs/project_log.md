@@ -90,7 +90,7 @@ Error handling: no image uploaded, missing model weights (clear message), unread
 - src/knowledge_base.py - disease data, report builder, chatbot logic
 - notebooks/train_agroguard.ipynb - Colab training notebook (all steps: datasets, class mapping, baseline evaluation, training of Model 2 and 3, plots)
 - docs/results.md, docs/project_log.md - results and notes
-- models/ (ignored by git) - local weights models/model3 (config.json, model.safetensors, about 9 MB)
+- models/ (ignored by git) - local weights models/model3 (config.json, model.safetensors, about 9 MB). Public download link (Google Drive): https://drive.google.com/drive/folders/1UUDsUV2dfipey_0GkEDTA39S0c2IYRLv?usp=sharing
 - data/ (ignored by git) - datasets are downloaded by the notebook; links are given in the README
 - requirements.txt, README.md, .gitignore
 Weights and datasets are not uploaded to GitHub (assignment rule). TO DO: upload Model 3 to the
@@ -115,11 +115,11 @@ Checkpoints, final models, results.json and plots are stored in Google Drive fol
 ## 10. Remaining work (keep this list updated)
 1. Commit and push the current code (Step 25 files).
 2. DONE: training notebook saved in notebooks/train_agroguard.ipynb (commit and push it).
-3. Upload Model 3 to Hugging Face Hub, add the link and download steps to the README.
+3. DONE: Hugging Face skipped (not required). Model 3 shared via Google Drive link, download steps are in the README.
 4. Grad-CAM tab (explainability).
 5. Crop Recommendation tab (Random Forest on soil/weather values) as the second ML model.
 6. Bangla language option for the Disease Library (optional, creativity).
-7. Full README (install, run, datasets, model link, usage, limitations).
+7. DONE: full README written (install, run, datasets, model link, model documentation, limitations, references).
 8. Deploy to Hugging Face Spaces (backup for the demo).
 9. Clean comparison chart (value labels) for the report.
 10. Collect screenshots, write the report (min. 10 pages, PDF), prepare the demo (3-5 minutes) and Q&A.
