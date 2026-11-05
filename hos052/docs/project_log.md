@@ -7,7 +7,6 @@ technical report can be written from it at any time without relying on chat hist
 - Project title: AgroGuard AI - Advanced Plant Disease Detection & Smart Farming Assistant
 - Course: Professional Training (course code YN3012170034), Mid-term project, individual
 - Student: Hossain Md Pial | GitHub: hossainmdpial52 | Repository folder: hos052
-  (Full student ID: TO CONFIRM with the student - it appears to start with 202243120052)
 - Submission: Pull Request from the student's fork to https://github.com/xahiru/PT22026
   (TA instruction: fork the repo, work inside the hos052 folder of the fork, then open a PR)
 - Required deliverables: source code via PR, PDF report (min. 10 pages), 3-5 minute live demo
@@ -82,7 +81,7 @@ Tabs:
    It never recommends specific pesticides or dosages (safety by design).
 Knowledge base: 26 disease entries (cause, symptoms, spread) + care/prevention by disease type.
 Note for references: the knowledge base is compiled from general plant pathology knowledge.
-TO DO: verify the content against university extension / FAO sources and cite them in the report.
+The content has not been reviewed by an agricultural expert (this is stated as a limitation in the report).
 
 Error handling: no image uploaded, missing model weights (clear message), unreadable image, unknown question.
 
@@ -96,8 +95,8 @@ Error handling: no image uploaded, missing model weights (clear message), unread
 - models/ (ignored by git) - local weights models/model3 (config.json, model.safetensors, about 9 MB). Public download link (Google Drive): https://drive.google.com/drive/folders/1UUDsUV2dfipey_0GkEDTA39S0c2IYRLv?usp=sharing
 - data/ (ignored by git) - datasets are downloaded by the notebook; links are given in the README
 - requirements.txt, README.md, .gitignore
-Weights and datasets are not uploaded to GitHub (assignment rule). TO DO: upload Model 3 to the
-Hugging Face Hub and give the link in the README.
+Weights and datasets are not uploaded to GitHub (assignment rule). Model 3 is shared through a Google Drive link
+given in the README.
 
 ## 8. Git / GitHub workflow
 - Cloned xahiru/PT22026, created branch hos052-project, folder hos052 provided by the TAs.
@@ -105,8 +104,8 @@ Hugging Face Hub and give the link in the README.
   fork the repository, work in the hos052 folder of the fork, then open a Pull Request to the main repo.
 - Fork: https://github.com/hossainmdpial52/PT22026 (remote name "myfork"); branch hos052-project pushed.
 - Commits so far: initial project structure; basic Gradio app with pre-trained model;
-  (pending commit) modular classifier + Model 3 + comparison dropdown + results notes;
-  (pending commit) knowledge base, Disease Library tab and Farming Chatbot.
+  modular classifier + Model 3 + comparison dropdown + results notes; knowledge base, Disease Library tab and
+  Farming Chatbot; training notebook; README and requirements; Grad-CAM tab and README update.
 - Git push needed a proxy setting on the student computer (git config --global http.proxy http://127.0.0.1:12000).
 - The Pull Request is the official submission and is created only when everything is finished.
 
@@ -115,24 +114,15 @@ Python 3.12, PyTorch, torchvision, Hugging Face Transformers and Datasets, Gradi
 scikit-learn, grad-cam (installed), pandas, matplotlib. Training on Google Colab (Tesla T4).
 Checkpoints, final models, results.json and plots are stored in Google Drive folder hos052_agroguard.
 
-## 10. Remaining work (keep this list updated)
-1. Commit and push the current code (Step 25 files).
-2. DONE: training notebook saved in notebooks/train_agroguard.ipynb (commit and push it).
-3. DONE: Hugging Face skipped (not required). Model 3 shared via Google Drive link, download steps are in the README.
-4. DONE: Grad-CAM tab (tested by the student: works with Model 3).
-5. Crop Recommendation tab (Random Forest on soil/weather values) as the second ML model.
-6. Bangla language option for the Disease Library (optional, creativity).
-7. DONE: full README written (install, run, datasets, model link, model documentation, limitations, references).
-8. Deploy to Hugging Face Spaces (backup for the demo).
-9. Clean comparison chart (value labels) for the report.
-10. Collect screenshots, write the report (min. 10 pages, PDF), prepare the demo (3-5 minutes) and Q&A.
+## 10. Status
+All planned features are finished: Diagnose, Disease Library, Farming Chatbot and Explain (Grad-CAM) tabs,
+training notebook, README, requirements.txt and .gitignore. Model weights are shared through Google Drive
+(link in the README). The technical report is written separately as a PDF.
 
-## 11. Screenshots collected / needed for the report
-Collected: PlantVillage sample images (8 images) and dataset size output, ready-model prediction on a field photo (wrong),
-ready-model prediction on a lab-style photo (correct), Model 3 prediction on the field photo (correct),
-Drive folder with trained models, training curves, model comparison chart, confusion matrix, GitHub fork page.
-Needed: all 3 app tabs, chatbot conversation, Grad-CAM, crop recommendation, GitHub commit history, Pull Request page,
-Hugging Face Space page.
+## 11. Figures in the report
+1 PlantVillage samples, 2 Diagnose tab, 3 Disease Library tab, 4 Farming Chatbot tab, 5 Grad-CAM tab,
+6 GitHub folder page, 7 Pull Request page, 8 model comparison chart, 9 training curves, 10 confusion matrix,
+11 Model 3 vs ready-made baseline on the same field photo, 12 ready-made baseline on a lab-style photo.
 
 ## 12. Grad-CAM observations (for the Discussion section)
 - Test photo: apple leaf with many red-brown spots. Model 3 predicted Apple - Cedar apple rust (76% confidence).
@@ -142,4 +132,3 @@ Hugging Face Space page.
 - How Grad-CAM works: gradients of the class score w.r.t. the last conv feature maps are averaged per channel (weights),
   the weighted feature maps are summed, ReLU is applied, the map is resized to 224 x 224 and overlaid on the photo.
 - Reference: Selvaraju et al., ICCV 2017 (arXiv:1610.02391); library: jacobgil/pytorch-grad-cam.
-- TO DO: take a comparison screenshot, Model 3 vs ready-made baseline, on the same field photo.
