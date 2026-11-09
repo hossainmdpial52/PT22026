@@ -101,10 +101,13 @@ hos052/
 Requirements: Python 3.10 or newer (developed with 3.12) and an internet connection for the first run.
 
 **Step 1: Get the code**
+The project is on the branch `hos052-project` of my fork:
 ```
-git clone https://github.com/hossainmdpial52/PT22026.git
+git clone -b hos052-project https://github.com/hossainmdpial52/PT22026.git
 cd PT22026/hos052
 ```
+After the Pull Request is merged, the same folder `hos052` is also in the main course repository
+(https://github.com/xahiru/PT22026).
 
 **Step 2: Install the libraries**
 ```
